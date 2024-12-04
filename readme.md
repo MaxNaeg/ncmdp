@@ -5,6 +5,7 @@ This project contains the code to reproduce the results reported in the paper "T
 * Code related to "3.1 Classical Control" is in lunar_lander_env.
 * Code related to "3.2 Portfolio Optimization with Sharpe Ratio as Objective" is in portfolio_opt_env.
 * Code related to "3.3 Discrete Optimization Problems" for the peak environment is in peak_env.
+* Code related to "Appendix C: Grid environment" is in grid_env
 
 * For other results related to  "3.3 Discrete Optimization Problems" see https://github.com/MaxNaeg/ZXreinforce, https://github.com/remmyzen/rlftqc, and https://github.com/jolle-ag/qdx.
 
