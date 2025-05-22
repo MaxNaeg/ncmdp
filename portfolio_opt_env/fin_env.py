@@ -5,6 +5,7 @@ import gymnasium as gym
 class FinEnv(gym.Env):
     def __init__(self, start_date, end_date, data_folder, 
                  adapt_state, adapt_reward,
+                 only_last_reward=False,
                  lookback_window=59,
                  eta=1/252,
                  init_P=1e5,
@@ -16,6 +17,8 @@ class FinEnv(gym.Env):
         self.data_folder = data_folder
         self.adapt_state = adapt_state
         self.adapt_reward = adapt_reward
+        self.only_last_reward = only_last_reward
+        assert not (self.adapt_reward and self.only_last_reward), "adapt_reward and only_last_reward cannot be used together"
         self.lookback_window = lookback_window
         self.eta=eta
         self.init_P = init_P
@@ -136,11 +139,13 @@ class FinEnv(gym.Env):
             self.B_true = np.mean(R_lookback**2)
             K = np.sqrt(self.lookback_window / (self.lookback_window - 1))
             self.sharpe = self.A_true / (np.sqrt(self.B_true - self.A_true**2) * K)
+            self.init_sharpe = self.sharpe
         else:
             self.R_lookback = []
             self.A_true = 0.
             self.B_true = 0.
             self.sharpe = 0.
+            self.init_sharpe = self.sharpe
 
         self.A_diff = 0.
         self.B_diff = 0.
@@ -218,18 +223,22 @@ class FinEnv(gym.Env):
             sharpe_new_exact = np.nan_to_num(np.mean(R_list_new) / (np.std(R_list_new) * K), 
                                              nan=0.0, posinf=0.0, neginf=0.0)
 
-
+        terminated = False
+        if self.current_index >= self.end_index:
+            terminated = True
     
         if self.adapt_reward:
             reward = n * sharpe_new_exact - (n-1) * self.sharpe
+        elif self.only_last_reward:
+            reward = 0.
+            if terminated:
+                reward = sharpe_new_exact - self.init_sharpe
         else:
             reward = self.D
         if self.eval:
             reward = sharpe_new_exact - self.sharpe
 
-        terminated = False
-        if self.current_index >= self.end_index:
-            terminated = True
+        
 
         self.sharpe = sharpe_new_exact
         self.P = new_p

@@ -11,6 +11,7 @@ import empyrical as ep
 
 from stable_baselines3 import PPO
 from stable_baselines3.common.env_util import make_vec_env
+from stable_baselines3.common.vec_env import SubprocVecEnv
 
 from own_eval_callback import OwnEvalCallback, own_eval_policy
 
@@ -26,21 +27,26 @@ def check_and_make_directories(directories: list[str]):
 
 
 def main():
+
+    
+
     parser = argparse.ArgumentParser(description="Runner Parser",
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--seed_start', type=int, default=0, help='Random seed')
     parser.add_argument('--adapt_state', type=str, default="False", help='adapt state')
     parser.add_argument('--adapt_reward', type=str, default="False", help='adapt reward')
+    parser.add_argument('--only_last_reward', type=str, default="False", help='only_last_reward')
 
     args = vars(parser.parse_args())
-    # We used seed_start [0, 5, 10, 15, 20] for the experiments
+
     seed_start=args["seed_start"]
     n_seeds = 5
     seeds = np.arange(seed_start, seed_start+n_seeds, 1, dtype=int)
     adapt_state=str_to_bool(args["adapt_state"])
     adapt_reward=str_to_bool(args["adapt_reward"])
+    only_last_reward=str_to_bool(args["only_last_reward"])
 
-    print(f"{seed_start=}, {adapt_state=}, {adapt_reward=}", flush=True)
+    print(f"{seed_start=}, {adapt_state=}, {adapt_reward=}, {only_last_reward=}", flush=True)
 
 
 
@@ -61,9 +67,9 @@ def main():
                         "2017-12-31", "2018-12-31", "2019-12-31", "2020-12-31", "2021-12-31"]
 
 
-    exp_dir = f'./full_exp{seed_start=}/'
-    log_dir=os.path.join(exp_dir, f'log_{adapt_reward=}_{adapt_state=}')
-    tensorboard_dir =os.path.join(exp_dir, f"tensorboard_{adapt_reward=}_{adapt_state=}")
+    exp_dir = f'./full_exp/{seed_start=}/'
+    log_dir=os.path.join(exp_dir, f'log_{adapt_reward=}_{adapt_state=}_{only_last_reward=}')
+    tensorboard_dir =os.path.join(exp_dir, f"tensorboard_{adapt_reward=}_{adapt_state=}_{only_last_reward=}")
 
     check_and_make_directories([log_dir, tensorboard_dir])
 
@@ -173,6 +179,7 @@ def main():
                             "data_folder": data_folder, 
                             "adapt_state": adapt_state, 
                             "adapt_reward": adapt_reward,
+                            "only_last_reward": only_last_reward,
                             "lookback_window":59,
                             "eta": 1/252,
                             "init_P": 1e5,
