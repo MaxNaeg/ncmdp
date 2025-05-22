@@ -25,12 +25,16 @@ class LunarLanderWrapper(LunarLander):
                  gravity: float = -10.0,
                  enable_wind: bool = False,
                  wind_power: float = 15.0,
-                 turbulence_power: float = 1.5,):
+                 turbulence_power: float = 1.5,
+                 last_reward_vel_max:bool = False,):
     
         # to recover the original lunar lander, set 
         # adapt_state = False, vel_coeff = 0, init_vel_factor = 1
         self.min_neg_vel = 0.
         self.initial_neg_velocity = 0.
+        self.last_reward_vel_max = last_reward_vel_max
+
+        assert not (opt_min and last_reward_vel_max), "opt_min and last_reward_vel_max cannot be used together"
 
         super().__init__(render_mode,
                         continuous,
@@ -150,6 +154,11 @@ class LunarLanderWrapper(LunarLander):
 
         if self.opt_min:
             rew_adapted = reward + min(self.vel_coeff * (neg_vel - self.min_neg_vel), 0)
+        elif self.last_reward_vel_max:
+            rew_adapted = reward
+            if terminated:
+                rew_adapted += self.vel_coeff * (min(neg_vel, self.min_neg_vel) 
+                                                 - self.initial_neg_velocity)
         else:
             # square as this reward is integrated over time
             rew_adapted = reward - self.vel_coeff * neg_vel**2

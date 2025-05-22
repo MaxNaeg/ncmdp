@@ -130,7 +130,7 @@ def main():
     (episode_rewards_all, episode_lengths_all, episode_rewards_not_adapted_all, episode_neg_min_vel_all, 
     episode_init_vel_all, episode_sucess_all, n_cuttoff_all) = [], [], [], [], [], [], []
     seeds = np.arange(5)
-    save_path = "saved_models/"
+    save_path = "./saved_models/"
     n_eval_episodes = 10000
     cutoff_length=1e5
 
@@ -182,19 +182,35 @@ def main():
         
 
         # # # change starting here
-        to_add = "maxppo_no_obs"
+
+        to_add = "ppo_add_obs_laststep"
         ppo_coeffs = [12.5, 25, 50, 75, 100, 150, 200, 300, 400, 600, 800, 1200, 1600, 2400]
     
         for coeff in ppo_coeffs:
             # env paras
             env_kwargs = {"enable_wind": True,
-                    "adapt_state": False,
+                    "adapt_state": True,
                     "vel_coeff": coeff,
                     "init_vel_factor": 1.,
-                    "opt_min": True,
+                    "opt_min": False,
                     "wind_power": 5, #15.0,
                     "turbulence_power": 0.5, #1.5,
+                    "last_reward_vel_max": True
                     }
+            
+        # to_add = "maxppo_no_obs"
+        # ppo_coeffs = [12.5, 25, 50, 75, 100, 150, 200, 300, 400, 600, 800, 1200, 1600, 2400]
+    
+        # for coeff in ppo_coeffs:
+        #     # env paras
+        #     env_kwargs = {"enable_wind": True,
+        #             "adapt_state": False,
+        #             "vel_coeff": coeff,
+        #             "init_vel_factor": 1.,
+        #             "opt_min": True,
+        #             "wind_power": 5, #15.0,
+        #             "turbulence_power": 0.5, #1.5,
+        #             }
 
         # to_add = "ppo_normal"
         # # ppo_coeffs = [0., 0.25, 0.5, 1., 2., 4., 8., 16.]
@@ -280,7 +296,7 @@ def main():
                 print(f"Model not found for {tb_log_name}!")
 
 
-    save_path= "eval_results/"
+    save_path= "./eval_results/eval_results_big_exp2"
     with open(save_path + f"episode_rewards_all_{to_add}.pkl", "wb") as f:
         pickle.dump(episode_rewards_all, f)
 
